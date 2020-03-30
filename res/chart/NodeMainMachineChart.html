@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>主机性能监控</title>
+    <script type="text/javascript" src="../../libs/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="../../libs/d3.js"></script>
+    <script type="text/javascript" src="../../libs/ghca_charts.js"></script>
+    <script type="text/javascript" src="./cfg/NodeMainMachineCfg.js"></script>
+    <style type="text/css">
+        html,body{
+            background: #a0a19b
+        }
+        #line1,#line2{
+            position: absolute;
+            height:300px;
+            width:100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="line1"></div>
+    <script>
+        const  Graph = ghca_charts.view.graph;
+        var cpuGh1=new Graph("line1",mainCfg); 
+        cpuGh1.render();
+    </script>
+</body>
+</html>

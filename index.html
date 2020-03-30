@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    
+    <link rel="stylesheet" href="./libs/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" href="./libs/easyui/themes/icon.css">
+    <link rel="stylesheet" href="./res/css/editor.css">
+    <script type="text/javascript" src="./libs/d3.js"></script>
+    <script type="text/javascript" src="./libs/jquery-3.2.1.min.js"></script>
+    <script>
+        var $jd=$;
+    </script>
+    <script type="text/javascript" src="./libs/easyui/jquery.min.js"></script>
+    <script>
+        var $easyui=$;//给easyui版本的jquery别名
+        var $=$jd;
+    </script>
+    <script type="text/javascript" src="./libs/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="./libs/raphael.js"></script>
+    <script type="text/javascript" src="./libs/ghca_charts.js"></script>
+    <script type="text/javascript" src="./res/data/testdata.js"></script>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script type="text/javascript" src="<%=htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+
+    <style>
+    
+    </style>
+<body>
+    <div id="menu" class="easyui-menu" data-options="hideOnUnhover:false">      
+    </div>  
+    <div style="width: 100%;position:absolute;top:0px;bottom: 0px">
+        <div id="editor" class="easyui-layout" data-options="fit:true" style="border-style: none">
+            <div id="topo_edit" data-options="region:'center'" style="border-style: none">
+                <div class="autoGroupContainer">
+                    <select id="autoGroupCombobox" class="easyui-combobox" name="state" label="组视图:" labelPosition="left">
+                        <option value="AL">Alabama</option>
+                        <option value="AK">Alaska</option>
+                    </select>
+                </div>
+                <div class="southContainer">
+                    <div id="node_tool" style="overflow: hidden;"></div>
+                </div>
+                <div id="edit_tool"></div>
+                <span class="searchContainer">
+                    <input id="searchInput" placeholder="搜索" />
+                </span>
+
+                <div id="sliderContainer">
+                    <span>300</span>
+                    <div id="slider" style="height:100px;">
+                    </div>
+                    <span style="margin-left:5px">0</span>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+    <script>
+     window.toolTipHandler=function(d){
+            var tipsExp = "";
+            if(d.type ==="default"){
+                var sourceDescr = d.sourceDescr;
+                var targetDescr = d.targetDescr;
+                var name = d.name;
+                if(sourceDescr&&targetDescr){
+                    if(d.monitor==1){
+                        tipsExp = sourceDescr+"--><p style='color:red;'>"+targetDescr+"</p><br/>";
+                    }else{
+                        tipsExp = "<p style='color:red;'>"+sourceDescr+"</p>-->"+targetDescr+"<br/>";
+                    }
+
+                }else{
+                    if(sourceDescr)  {
+                        tipsExp += (sourceDescr+"<br/>");
+                    }
+                    if(targetDescr)  {
+                        tipsExp += (targetDescr+"<br/>");
+                    }
+                }
+                if(name){
+                    tipsExp+=(name+"<br/>");
+                }
+                if(d.bz){
+                    tipsExp+=d.bz;
+                }
+
+            }else{
+                var nodeToolTipsConfig = {
+                    name:'名称：',
+                    ipAddr:'IP：',
+                    room:'机房：',
+                    rack:'机架：',
+                    seat:'机位：',
+                    resCustomer:'客户：',
+                    resBusiness:'业务：',
+                    resDatacenter:'数据中心：',
+                    bz:"描述："
+                };
+                var addList=[];
+                for (var k in nodeToolTipsConfig){
+                    var v = d[k];
+                    if(v&&v!==''){
+                        // tipsExp+=nodeToolTipsConfig[k]+v+"</br>";
+                        addList.push(nodeToolTipsConfig[k]+v);
+                    }
+                }
+                addList.forEach(function(v,index){
+                    if(index!=addList.length-1){
+                        tipsExp+=v+"</br>";
+                    }else{
+                        tipsExp+=v;
+                    }
+                });
+            }
+            return tipsExp;
+        }
+
+    //    $("a").css("background","#ff0000");
+         window.onload=function(){
+            var  idctopo=new IdcTopo();
+            idctopo.initEditor();
+            var EditorEvent=idctopo.EditorEvent;
+            var linksData=[];
+
+            d3.selectAll("body").node().addEventListener(EditorEvent.NET_ADD_NODE, function(e){//添加节点
+                var addData=e.detail;
+                addData.name="test"+Math.random();
+                addData[addData.name]="test";
+                idctopo.addNode(addData);
+            });
+            d3.selectAll("body").node().addEventListener(EditorEvent.NET_DEL_NODE, function(e){//删除节点
+                var ids=e.detail;
+                idctopo.deleteSelectedNodes();
+            });
+            d3.selectAll("body").node().addEventListener(EditorEvent.NET_ADD_GROUP, function(e){//添加组
+                var addData=e.detail;
+                idctopo.addGroup(addData);
+            });
+            d3.selectAll("body").node().addEventListener(EditorEvent.NET_SAVE_DATA, function(e){//保存数据
+                var jsonStr=JSON.stringify(e.detail);
+                console.log(jsonStr);
+            });
+            d3.selectAll("body").node().addEventListener(EditorEvent.NET_MERAGE_LINK, function(e){//合并连线
+                var mergeData=e.detail;
+                mergeDataHander(mergeData);
+                function mergeDataHander(mergeData){
+                    for(var i=0;i<mergeData.length;i++){
+                        var mergeItem=mergeData[i];
+                        var childrens=mergeItem.childrens;
+                        var name="合并数"+childrens.length;
+                        mergeItem.name=name;
+                        for(var j=0;j<childrens.length;j++){
+                            
+                        }
+                    }
+                }
+
+                idctopo.showMergeLinks(mergeData);//展示合并连线
+               
+            });
+            d3.selectAll("body").node().addEventListener(EditorEvent.NET_ADD_LINK, function(e){//添加连线
+                var addData=e.detail;
+                var id=new Date().getTime();
+                linksData=[];
+                for(var i=0;i<1;i++){
+                    linksData.push({
+                        id:id,
+                        name:""
+                    });
+                }
+                idctopo.addLinks(linksData);
+                if(id%2===0){
+                    return;
+                }
+                for(var i=0;i<1;i++){
+                    linksData[i]={//id，source，target必须其它更新什么传递什么
+                            "id": linksData[i].id,
+                            // "renderer": "link",
+                            // "name": "0",
+                            // "visible": true,
+                            "source": addData.source.id,
+                            "target": addData.target.id,
+                            // "lbBgColor": "#ff0000",
+                            // "lbBgOpa": "1",
+                            // "fontColor": "#070607",
+                            // "borderWidth": 2,
+                            // "borderColor": "#00ff00",
+                            // "borderOpacity": 1,
+                            // "dottedStep": "0,0"
+                        }
+                }
+
+                idctopo.updateLinks(linksData);//根据数据更新连线
+
+            });
+            d3.selectAll("body").node().addEventListener(EditorEvent.NET_RIGHT_MENU, function(e){//右键菜单
+                var item=e.detail;                
+                console.log(item.text,item.name);
+                if(item.name==="changeImg"){
+                    var data=item.data;
+                    data.icon="./res/img/node/32/1.png";
+                    idctopo.changeNodeImage(data);
+                }
+            });
+            
+            var data1={
+                title:"流量数据",
+                infos:[
+                    {color:"#00ff00",text:"0-10Mbps"},
+                    {color:"#008800",text:"10-100Mbps"},
+                    {color:"#888800",text:"100-1000Mbps"},
+                    {color:"#882200",text:"1-10Gbps"},
+                    {color:"#ff0000",text:"大于10Gbps"},
+                ]
+            }
+            var data2={
+                title:"带宽占比",
+                infos:[
+                    {color:"#00ff00",text:"0-20%"},
+                    {color:"#008800",text:"20-40%"},
+                    {color:"#888800",text:"40-60%"},
+                    {color:"#882200",text:"60-80%"},
+                    {color:"#ff0000",text:"80-100%"},
+                ]
+            }
+
+            //idctopo.showLegendWin(data1);//展示图例
+
+            // idctopo.mergeLinks();//合并连线
+            // console.log(idctopo.getMergeData());//获取合并后的数据
+            //idctopo.separateLinks();//分离连线
+            // idctopo.showLegendWin(data2);//展示图例
+            // idctopo.showLegendWin();//不传数据就是关闭
+            //idctopo.updateNodeWarnType(data)//节点有warnType属性，标记该节点的警告类型，0-n
+            // idctopo.showNodeWarn(true)//是否显示节点警告
+            
+            // setTimeout(function(){
+            //     linksData=[
+            //         {
+            //             id:"86845f53-f8da-408d-8ca3-e9552f6d5765-a622",
+            //             name:"",
+            //             fill:"#ff0000",
+            //             dottedStep:"4,4",
+            //             "source": "2222",
+            //             "target": "3333",
+            //         },{
+            //             id:"86845f53-f8da-408d-8ca3-e9552f6d5765-a621",
+            //             name:"X",
+            //             fill:"#ff0000",
+            //             "source": "3333",
+            //             "target": "2222",
+            //         }
+            //     ];
+            //    idctopo.updateLinks(linksData);//根据数据更新连线
+            // },2000)
+
+            idctopo.updateData(testData);
+
+            html2canvas(document.body).then(function(canvas) {
+            document.body.appendChild(canvas);
+            console.log("html2canvas")
+            });
+
+            // idctopo.getCurrentTopoData();//获取当前拓扑图的数据包括节点 连线  组信息
+            //[{"level":"critical","count":"1","url":""},{"level":"warning","count":"0","url":""},{"level":"immediate","count":"0","url":""},{"level":"information","count":"0","url":""}]
+
+            // idctopo.editor().updateNodeWarnDatas("1111",[{"level":2,"count":2,"url":""},{"level":2,"count":2,"url":""},{"level":3,"count":1580,"url":""},{"level":3,"count":2,"url":""},{"level":3,"count":2,"url":""},{"level":2,"count":1,"url":""},{"level":2,"count":2,"url":""}]);
+            // idctopo.editor().updateNodeWarnDatas("2222",[{"level":"1","count":"0","url":""},{"level":"3","count":"0","url":""}]);
+            // idctopo.editor().getEditState();
+            // idctopo.editor().getIsNeedSave();
+            // idctopo.showNodeWarn(false)//是否显示节点警告
+            // idctopo.changeEditMode(false);//切换编辑模式
+          /*   idctopo.changeEditMode(true);//切换编辑模式
+            setTimeout(() => {
+                idctopo.changeEditMode(false);
+            }, 1000); */
+       
+
+            //动态添加数据
+            // var currentData={
+            //     nodes:[],
+            //     links:[]
+            // };
+            // var isWaitLayout=false;
+            // var addIndex=0;
+            // var currentNodeIds=[];
+            // setInterval(function(){
+            //    if(!isWaitLayout){
+            //         if(addIndex<testData.nodes.length){
+            //             var node=testData.nodes[addIndex];
+            //             currentData.nodes.push(node);
+            //             currentNodeIds.push(node.id);
+            //             addIndex++;
+            //             currentData.links=[];
+            //             for(var i=0;i<testData.links.length;i++){
+            //                 var link=testData.links[i];
+            //                 if(currentNodeIds.indexOf(link.source)!=-1&&currentNodeIds.indexOf(link.target)!=-1){
+            //                     currentData.links.push(link);
+            //                 }
+            //             }
+
+            //             toReqLayout();
+            //         }
+            //    }
+            // },1000)
+
+            // function toReqLayout(){
+            //     isWaitLayout=true;
+            //     jQuery.ajax({
+            //     url:"http://192.168.3.239:3000/",
+            //     type:"POST",
+            //     dataType:"json",
+            //     data:{
+            //         nodes:JSON.stringify(currentData.nodes),
+            //         links:JSON.stringify(currentData.links)
+            //     },
+            //     success:function(data){
+            //         currentData.nodes=data.nodes;
+            //         currentData.links=data.links;
+            //         var d={
+            //             nodes:JSON.parse(JSON.stringify(data.nodes)),
+            //             links:JSON.parse(JSON.stringify(data.links)),
+            //         }
+            //         idctopo.updateData(d);
+            //         isWaitLayout=false;
+            //         idctopo.focusOnNode(d.nodes[d.nodes.length-1].id);
+            //     },
+            //     error:function(){
+            //         console.log("error");
+            //         isWaitLayout=false;
+            //     }
+            // })
+            // }            
+        }
+      
+    </script>
+</body>
+</html>

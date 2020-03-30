@@ -1,0 +1,332 @@
+{
+  "tree": {
+    "percentWidth": 100,
+    "percentHeight": 100,
+    "type": "chart",
+    "legend": {
+      "xPos": "center",
+      "yPos": "top",
+      "keyPath": "nodes",
+      "key": "health.value",
+      "labelFormat": "健康度{v}",
+      "colors": ["rgb(226,100,100)", "orange", "yellow", "rgb(162,228,108)"],
+      "domain": [25, 50, 75],
+      "visible": false
+    },
+    "toolTip": {
+      "trigger": "item",
+      "labelFormat": "{#toolTipHandlerTreeNode(d)#}"
+    },
+    "series": [{
+      "percentWidth": 100,
+      "percentHeight": 100,
+      "scaleType": 0,
+      "type": "tree",
+      "layout": {
+        "type": "treelayout",
+        "direction": "hor"
+      },
+      "parentField": "parentId",
+      "nodeSize": [100, 100],
+      "idField": "id",
+      "renderers": {
+        "110": {
+          "clazz": "link",
+          "config": {
+            "source": "{this}",
+            "target": "{parent}",
+            "math": 3,
+            "num": "{data.num}",
+            "besselX": true,
+            "path": {
+              "fill": "none",
+              "dasharray": "",
+              "borderWidth": "2",
+              "borderColor": "{data.legendColor}",
+              "borderOpacity": 0.6,
+              "overDasharray": "",
+              "overBorderWidth": "2",
+              "overBorderColor": "{data.legendColor}",
+              "overBorderOpacity": 0.3
+
+            },
+            "label": {
+              "clazz": "label",
+              "config": {
+                "visible": false,
+                "text": "{data.name}",
+                "maxWidth": 60,
+                "backGroundColor": "green",
+                "backGroundOpacity": 0.3,
+                "borderRadius": 4,
+                "padding": 4,
+                "fontColor": "0x000000",
+                "fontFamily": "宋体",
+                "fontSize": 12
+              }
+            }
+          }
+        },
+        "16": {
+          "clazz": "node",
+          "config": {
+            "main": {
+              "clazz": "circle",
+              "config": {
+                "cx": 0,
+                "cy": 0,
+                "radius": 10,
+                "border": 2,
+                "borderColor": "none",
+                "linecap": "butt",
+                "color": "{data.legendColor}"
+              }
+            },
+            "backGround": {
+              "clazz": "circle",
+              "config": {
+                "cx": 0,
+                "cy": 0,
+                "radius": 15,
+                "border": 2,
+                "borderColor": "green",
+                "linecap": "butt",
+                "color": "none"
+              }
+            },
+            "label": {
+              "clazz": "label",
+              "position": "{labelPosition}",
+              "rotate": "{labelRotateAngle}",
+              "config": {
+                "text": "{data.name}",
+                "maxWidth": 60,
+                "backGroundColor": "green",
+                "backGroundOpacity": 0.3,
+                "borderRadius": 4,
+                "padding": 4,
+                "fontColor": "0x000000",
+                "fontFamily": "宋体",
+                "fontSize": 12,
+                "textLine": 3,
+                "visible": true
+              }
+            },
+            "plugins": [{
+              "xPos": "left",
+              "yPos": "bottom",
+              "clazz": "expandTool",
+              "config": {
+                "collapsed": "{data.collapsed}",
+                "visible": "{children}",
+                "events": "expandTool_collapsed"
+              }
+            }]
+          }
+        },
+        "pieRenderer": {
+          "type": "chart",
+          "width": 30,
+          "height": 30,
+          "legend": {
+            "key": "health.value",
+            "colors": ["#dddddd", "rgb(226,100,100)", "orange", "yellow", "rgb(162,228,108)"],
+            "domain": [0, 25, 50, 75],
+            "visible": false
+          },
+          "plugins": [{
+              "clazz": "label",
+              "xPos": "right",
+              "yPos": "middle",
+              "config": {
+                "text": "{name}",
+                "maxWidth": 100,
+                "backGroundColor": "green",
+                "backGroundOpacity": 0.3,
+                "borderRadius": 3,
+                "padding": 1,
+                "fontColor": "0x000000",
+                "fontFamily": "微软雅黑",
+                "fontSize": 12,
+                "textLine": 3,
+                "visible": true
+              }
+            },
+            {
+              "clazz": "expandTool",
+              "xPos": "center",
+              "yPos": "bottom",
+              "config": {
+                "collapsed": "{collapsed}",
+                "visible": "{children}",
+                "events": "expandTool_collapsed"
+              }
+            }
+          ],
+          "series": [{
+            "type": "pie",
+            "layout": {
+              "type": "pielayout"
+            },
+            "renderers": {
+              "1": {
+                "clazz": "arcClass",
+                "clazzProperties": {
+                  "outerRadius": "{radius}",
+                  "stroke": "#999999",
+                  "innerRadius": 0,
+                  "cornerRadius": 0,
+                  "padAngle": 0,
+                  "animation": false,
+                  "style": "cursor:move;fill-opacity:1;",
+                  "title": "{#d.name#}流量：{#d.value#}"
+                },
+                "useProperties": {}
+              }
+            },
+            "keyPath": "",
+            "key": "values",
+            "itemRenderer": "1",
+            "data": []
+          }]
+        },
+        "imageNode": {
+          "clazz": "node",
+          "config": {
+            "events":"topo_tree_node_dbclick",
+            "main": {
+              "clazz": "idc_node",
+              "config": {
+                "imageWidth": "48",
+                "imageHeight": "48",
+                "opacity": "{opacity}",
+                "url": "{data.icon}"
+              }
+            },
+            "backGround": {
+              "clazz": "rect_bg",
+              "config": {
+                "width": "48",
+                "height": "48",
+                "borderColor": "#0011dd",
+                "color": "#ff3333",
+                "opacity": "0.5"
+              }
+            },
+            "label": {
+              "clazz": "topolabel",
+              "rotate": "0",
+              "position": "bottom",
+              "gap": 0,
+              "config": {
+                "text": "{data.name}",
+                "maxWidth": 80,
+                "backGroundColor": "{lbBgColor}",
+                "backGroundOpacity": "0",
+                "borderRadius": 4,
+                "padding": 0,
+                "fontColor": "{fontColor}",
+                "fontFamily": "Microsoft YaHei",
+                "fontSize": 12,
+                "textLine": 1,
+                "visible": true
+              },
+              "warn": {
+                "text": "{name}",
+                "maxWidth": 80,
+                "backGroundColor": "#000000",
+                "backGroundOpacity": "0",
+                "color": "{lbBgColor}",
+                "opacity": "{lbBgOpa}",
+                "rx": 4,
+                "ry": 4,
+                "padding": 0,
+                "fontColor": "{fontColor}",
+                "fontFamily": "Microsoft YaHei",
+                "fontSize": 12,
+                "textLine": 1,
+                "visible": true
+              }
+            },
+            "plugins": [
+
+            ]
+          }
+        },
+        "nodes": []
+      }
+    }]
+  },
+  "timeLine": {
+    "percentWidth":100,
+    "height":100,
+    "type":"chart",
+    "xFocusLine":{
+      "visible":true
+    },
+    "changeThumbSize":false,
+    "hSlider":{
+        "visible":true,
+         "pos":"right", 
+         "gapPercent":0.01, 
+         "thumbToolTip":{
+             "style":{
+                 "fill":"#000", "font-size":12
+                }
+            }
+        },
+    "legend":{
+        "xPos":"center",
+        "yPos":"top",
+        "keyPath":"data",
+        "key":"value",
+        "labelFormat":"健康度:{v}",
+        "colors":["rgb(226,100,100)", "orange", "yellow", "rgb(162,228,108)"],
+        "domain":[25,50,100],
+        "visible":false
+    },
+    "axis":{
+    	"xAxis":[
+        {
+            "type":"time", 
+            "position":"bottom",
+            "interval":500,
+            "keyPath":"data",
+            "key":"time",
+            "padding":{"left":150, "top":0,"right":150}
+        }
+        ],
+        "yAxis":[
+            {
+                "type":"enum", 
+                "position":"left",
+                "keyPath":"data",
+                "key":"name",
+                "domain":[],
+                "tick":{"tickSizeInner":0, "tickSizeOuter":0},
+                "tickLabel":{"transform":"translate(-5, 0)"},
+                "padding":{"left":150, "top":20}
+            }
+        ]
+    },
+    "toolTip":{
+    	"trigger":"xAxis",
+    	"labelFormat":"{#d.name#}:{#d3.timeFormat('%Y-%m-%d %H:%M:%S')(d.time)#}"
+    },
+    "series":[
+        {
+            "type":"scatter",
+            "scaleType":-1,
+            "dragable":false,
+            "percentWidth":100,
+            "percentHeight":100,
+            "layout":{"type":"scatterlayout", "isTimeLine":true},
+            "renderers":{
+            	"1":""
+            },
+            "data":[
+            ]
+        }
+    ]
+  }
+}

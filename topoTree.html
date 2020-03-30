@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+    <link rel="stylesheet" href="./libs/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" href="./libs/easyui/themes/icon.css">
+    <link rel="stylesheet" href="./res/css/editor.css">
+    <script type="text/javascript" src="./libs/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="./libs/d3.js"></script>
+    <script>
+        var $jd=$;
+    </script>
+    <script type="text/javascript" src="./libs/easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="./libs/easyui/jquery.easyui.min.js"></script>
+    <script>
+        var $easyui=$;//给easyui版本的jquery别名
+        var $=$jd;
+    </script>
+    <script type="text/javascript" src="./libs/raphael.js"></script>
+    <script type="text/javascript" src="./libs/ghca_charts.js"></script>
+    <script type="text/javascript" src="./res/data/treeTest.js"></script>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script type="text/javascript" src="<%=htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+    <style type="text/css">
+        html,body {
+            text-rendering: geometricPrecision;
+            overflow: hidden;
+            margin: 0px;
+            height:100%;
+        }
+
+        #tree {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        #timeLine {
+            position: absolute;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="tree"></div>
+    <div id="timeLine"></div>
+    <script>
+        window.toolTipHandlerTreeNode=function(d){
+            var tipsExp = "";
+            if(d.type ==="default"){
+                var sourceDescr = d.sourceDescr;
+                var targetDescr = d.targetDescr;
+                var name = d.name;
+                if(sourceDescr&&targetDescr){
+                    if(d.monitor==1){
+                        tipsExp = sourceDescr+"--><p style='color:red;'>"+targetDescr+"</p><br/>";
+                    }else{
+                        tipsExp = "<p style='color:red;'>"+sourceDescr+"</p>-->"+targetDescr+"<br/>";
+                    }
+
+                }else{
+                    if(sourceDescr)  {
+                        tipsExp += (sourceDescr+"<br/>");
+                    }
+                    if(targetDescr)  {
+                        tipsExp += (targetDescr+"<br/>");
+                    }
+                }
+                if(name){
+                    tipsExp+=(name+"<br/>");
+                }
+                if(d.bz){
+                    tipsExp+=d.bz;
+                }
+
+            }else{
+                var nodeToolTipsConfig = {
+                    name:'名称：',
+                    ipAddr:'IP：',
+                    room:'机房：',
+                    rack:'机架：',
+                    seat:'机位：',
+                    resCustomer:'客户：',
+                    resBusiness:'业务：',
+                    resDatacenter:'数据中心：',
+                    bz:"描述："
+                };
+                var addList=[];
+                for (var k in nodeToolTipsConfig){
+                    var v = d[k];
+                    if(v&&v!==''){
+                        // tipsExp+=nodeToolTipsConfig[k]+v+"</br>";
+                        addList.push(nodeToolTipsConfig[k]+v);
+                    }
+                }
+                addList.forEach(function(v,index){
+                    if(index!=addList.length-1){
+                        tipsExp+=v+"</br>";
+                    }else{
+                        tipsExp+=v;
+                    }
+                });
+            }
+            return tipsExp;
+        }
+        window.onload = function () {
+            $.getJSON("../res/data/tree.json", function (data) {
+                var treeTopo = new TreeTopo();
+                treeTopo.initTreeTopo("tree", "timeLine", data);
+            });
+        };
+    </script>
+</body>
+
+</html>
